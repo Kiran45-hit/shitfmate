@@ -17,6 +17,8 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(res.data))
       if (res.data.role === 'WORKER') navigate('/worker/dashboard')
       else if (res.data.role === 'EMPLOYER') navigate('/employer/dashboard')
+      else if (res.data.role === 'ADMIN') navigate('/admin')
+      else navigate('/jobs')
     } catch (err) {
       setError('Invalid email or password')
     }

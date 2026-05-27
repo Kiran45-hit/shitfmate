@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API from '../api'
+import Payment from './Payment'
 
 export default function EmployerDashboard() {
   const [jobs, setJobs] = useState([])
@@ -58,7 +59,9 @@ export default function EmployerDashboard() {
       alert('Job posted successfully!')
       setShowForm(false)
       fetchJobs()
-    } catch (err) { alert('Failed to post job') }
+    } catch (err) {
+      alert(err.response?.data || 'Failed to post job')
+    }
   }
 
   const statusColors = {
@@ -188,14 +191,17 @@ export default function EmployerDashboard() {
           </div>
         )}
 
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
           {[
             { key: 'jobs', label: '📋 My Jobs' },
             { key: 'applicants', label: `👥 Applicants${selectedJob ? ` — ${selectedJob.title}` : ''}` },
+            { key: 'payments', label: '💳 Payments' },
+            { key: 'verify', label: '✅ Get Verified' },
           ].map(tab => (
             <button key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'border-indigo-600 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -205,6 +211,7 @@ export default function EmployerDashboard() {
           ))}
         </div>
 
+        {/* Jobs Tab */}
         {activeTab === 'jobs' && (
           <div>
             {loading ? (
@@ -266,6 +273,7 @@ export default function EmployerDashboard() {
           </div>
         )}
 
+        {/* Applicants Tab */}
         {activeTab === 'applicants' && (
           <div>
             {applicants.length === 0 ? (
@@ -324,7 +332,144 @@ export default function EmployerDashboard() {
             )}
           </div>
         )}
+
+        {/* Payments Tab */}
+        {activeTab === 'payments' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <h3 className="font-semibold text-gray-900 mb-2">💳 Pay for a Job</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Money is held in escrow and released to workers after job completion
+              </p>
+              {jobs.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-400">No jobs posted yet</p>
+                </div>
+              ) : (
+                jobs.filter(j => j.status === 'OPEN').map(job => (
+                  <div key={job.id}
+                    className="border border-gray-100 rounded-xl p-4 mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{job.title}</h4>
+                        <p className="text-gray-500 text-sm">
+                          ₹{job.salary} × {job.totalSlots} slots = ₹{job.salary * job.totalSlots}
+                        </p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        OPEN
+                      </span>
+                    </div>
+                    <Payment
+                      jobId={job.id}
+                      jobTitle={job.title}
+                      onSuccess={fetchJobs}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Verify Tab */}
+        {activeTab === 'verify' && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-3">🛡️</div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Get Verified Employer Badge
+              </h3>
+              <p className="text-gray-500 text-sm mt-2">
+                Verified employers get more applications and
+                higher trust from workers
+              </p>
+            </div>
+            {user?.employerVerified ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                <p className="text-green-700 font-medium">
+                  ✓ Your account is verified!
+                </p>
+                <p className="text-green-600 text-sm mt-1">
+                  Workers can see your verified badge on all job listings
+                </p>
+              </div>
+            ) : (
+              <VerifyForm userId={user?.id} onSuccess={fetchJobs} />
+            )}
+          </div>
+        )}
       </div>
     </div>
+  )
+}
+
+// Verify Form Component
+function VerifyForm({ userId, onSuccess }) {
+  const [form, setForm] = useState({
+    companyName: '', gstNumber: '', companyAddress: ''
+  })
+  const [loading, setLoading] = useState(false)
+
+  const handleVerify = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await API.post('/scam-shield/verify-employer', {
+        employerId: String(userId),
+        ...form
+      })
+      alert('Verification submitted! Badge activated.')
+      if (onSuccess) onSuccess()
+    } catch (err) {
+      alert('Verification failed')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <form onSubmit={handleVerify} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Company Name
+        </label>
+        <input required
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="e.g. TechCorp Solutions Pvt Ltd"
+          value={form.companyName}
+          onChange={e => setForm({...form, companyName: e.target.value})}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          GST Number (optional)
+        </label>
+        <input
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="e.g. 29ABCDE1234F1Z5"
+          value={form.gstNumber}
+          onChange={e => setForm({...form, gstNumber: e.target.value})}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Company Address
+        </label>
+        <textarea required rows={2}
+          className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="Full company address..."
+          value={form.companyAddress}
+          onChange={e => setForm({...form, companyAddress: e.target.value})}
+        />
+      </div>
+      <button type="submit" disabled={loading}
+        className="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium hover:bg-indigo-700 transition disabled:opacity-50">
+        {loading ? 'Submitting...' : '✅ Submit for Verification'}
+      </button>
+      <p className="text-xs text-gray-400 text-center">
+        Verification is instant in test mode.
+        In production, admin reviews within 24 hours.
+      </p>
+    </form>
   )
 }
