@@ -34,6 +34,14 @@ public class User {
 
     private boolean verified = false;
 
+    // Scam Shield fields
+    private boolean employerVerified = false;
+    private String companyName;
+    private String gstNumber;
+    private String companyAddress;
+    private boolean banned = false;
+    private int reportCount = 0;
+
     public enum Role {
         WORKER, EMPLOYER, ADMIN
     }

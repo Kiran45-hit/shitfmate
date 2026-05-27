@@ -51,6 +51,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/jobs").permitAll()
                         .requestMatchers("/api/jobs/search").permitAll()
+                        .requestMatchers("/api/payments/verify").permitAll()
+                        .requestMatchers("/api/scam-shield/analyze").permitAll()
+                        .requestMatchers("/api/scam-shield/report-count/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);

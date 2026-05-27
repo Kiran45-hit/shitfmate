@@ -40,6 +40,10 @@ public class AuthController {
                         response.put("role", user.getRole());
                         response.put("name", user.getName());
                         response.put("email", user.getEmail());
+                        response.put("id", user.getId());
+                        response.put("phone", user.getPhone());
+                        response.put("employerVerified", user.isEmployerVerified());
+                        response.put("banned", user.isBanned());
                         return ResponseEntity.ok(response);
                     } else {
                         return ResponseEntity.badRequest()

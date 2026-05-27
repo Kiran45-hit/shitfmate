@@ -1,13 +1,12 @@
 # Database connection
 spring.datasource.url=jdbc:postgresql://localhost:5432/shiftmate
 spring.datasource.username=postgres
-spring.datasource.password=root
+spring.datasource.password=YOUR_POSTGRES_PASSWORD
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 # JPA settings
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties.hibernate.format_sql=true
 
 # App port
@@ -15,14 +14,15 @@ server.port=8081
 
 # App name
 spring.application.name=shiftmate-backend
-# Razor pay
-razorpay.key.id=rzp_test_SsDCxDviXCW8hu
-razorpay.key.secret=VpvNFNNuxXuB5shdZy92dHO7
+
+# Razorpay
+razorpay.key.id=YOUR_RAZORPAY_KEY_ID
+razorpay.key.secret=YOUR_RAZORPAY_KEY_SECRET
 
 # Email (Gmail SMTP)
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=kirannandaragi6@gmail.com
-spring.mail.password=vlxp yywa ogdk mtmh
+spring.mail.username=YOUR_GMAIL@gmail.com
+spring.mail.password=YOUR_GMAIL_APP_PASSWORD
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
