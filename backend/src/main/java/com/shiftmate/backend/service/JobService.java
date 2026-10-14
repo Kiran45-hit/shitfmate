@@ -3,6 +3,8 @@ package com.shiftmate.backend.service;
 import com.shiftmate.backend.model.*;
 import com.shiftmate.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,6 +29,7 @@ public class JobService {
     private NotificationService notificationService;
 
     // employer posts a job
+    @CacheEvict(value = "openJobs", allEntries = true)
     public Job postJob(Job job, String employerEmail) {
         User employer = userRepository.findByEmail(employerEmail)
                 .orElseThrow(() -> new RuntimeException("Employer not found!"));
@@ -55,13 +58,25 @@ public class JobService {
         return jobRepository.save(job);
     }
 
-    // get all open jobs
+//    // get all open jobs
+//    public List<Job> getAllOpenJobs() {
+//        return jobRepository.findByStatus(Job.JobStatus.OPEN);
+//    }
+    
+    
+    // redis 
+ // get all open jobs
+    @Cacheable("openJobs")
     public List<Job> getAllOpenJobs() {
+        System.out.println("Fetching open jobs from PostgreSQL...");
         return jobRepository.findByStatus(Job.JobStatus.OPEN);
     }
 
-    // get jobs by location
+ // get jobs by location
+    @Cacheable("jobsByLocation")
     public List<Job> getJobsByLocation(String location) {
+        System.out.println("Fetching jobs for location from PostgreSQL: " + location);
+
         return jobRepository.findByLocationContainingIgnoreCase(location);
     }
 
@@ -108,6 +123,7 @@ public class JobService {
     }
 
     // employer accepts/rejects application
+    @CacheEvict(value = "openJobs", allEntries = true)
     public JobApplication updateApplicationStatus(
             Long applicationId,
             JobApplication.ApplicationStatus newStatus,

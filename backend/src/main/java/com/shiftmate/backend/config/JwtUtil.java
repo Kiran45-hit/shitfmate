@@ -25,6 +25,7 @@ public class JwtUtil {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+    
 
     public String extractEmail(String token) {
         return getClaims(token).getSubject();
